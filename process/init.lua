@@ -3,6 +3,14 @@ local meta = require 'process.meta'
 
 local M = {}
 
+function M.meta()
+  return {
+    icon = '󰒋',
+    desc = 'Process manager',
+    color = 'green',
+  }
+end
+
 function M.setup(opt)
   config.setup(opt or {})
   meta.setup(config.get())
