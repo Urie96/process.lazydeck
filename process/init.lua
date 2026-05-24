@@ -1,5 +1,5 @@
 local config = require 'process.config'
-local meta = require 'process.meta'
+local action = require 'process.action'
 
 local M = {}
 
@@ -11,9 +11,17 @@ function M.meta()
   }
 end
 
+local function register_page_keymaps()
+  local keymap = (config.get() or {}).keymap or {}
+  local path = '/process/**'
+  if keymap.kill and keymap.kill ~= '' then
+    deck.keymap.set('main', keymap.kill, action.kill, { path = path, desc = 'kill process' })
+  end
+end
+
 function M.setup(opt)
   config.setup(opt or {})
-  meta.setup(config.get())
+  register_page_keymaps()
 
   local has_ps = deck.system.executable(config.get().ps_command)
   local has_pstree = deck.system.executable(config.get().pstree_command)
@@ -31,12 +39,14 @@ end
 function M.list(_, cb)
   deck.system({ config.get().ps_command, '-eo', 'pid,command' }, function(out)
     if out.code ~= 0 then
-      cb(meta.attach {
+      cb({
         {
           key = 'error',
           kind = 'info',
+          selectable = false,
           message = 'Failed to list processes',
           color = 'red',
+          display = deck.style.line { deck.style.span('Failed to list processes'):fg 'red' },
         },
       })
       return
@@ -57,8 +67,22 @@ function M.list(_, cb)
       end
     end
 
-    cb(meta.attach(entries))
+    cb(entries)
   end)
+end
+
+function M.preview(entry, cb)
+  if not entry then
+    cb(deck.style.text { deck.style.line { 'process' } })
+    return
+  end
+
+  if entry.kind == 'process' then
+    action.preview(entry, cb)
+    return
+  end
+
+  cb(action.info_preview(entry))
 end
 
 return M
