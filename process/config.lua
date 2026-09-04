@@ -2,9 +2,9 @@ local M = {}
 
 local cfg = {
   ps_command = 'ps',
-  pstree_command = 'pstree',
   keymap = {
-    kill = 'dd',
+    kill = 'dd', -- SIGTERM (15)
+    kill9 = 'dk', -- SIGKILL (9)
   },
 }
 
